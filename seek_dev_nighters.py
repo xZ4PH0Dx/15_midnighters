@@ -3,13 +3,14 @@ import pytz
 from datetime import datetime
 
 
-def get_json(url):
-    return requests.get(url).json()
+def get_json(url, payload):
+    return requests.get(url, params=payload).json()
 
 
-def load_attempts(pages, url):
-    for page in range(1, pages+1):
-        data_on_page = get_json(url+str(page))
+def load_attempts(n_pages, url):
+    for page in range(1, n_pages+1):
+        payload = {'page': page}
+        data_on_page = get_json(url, payload)
         for record in data_on_page['records']:
             yield {
                 'username': record['username'],
@@ -46,8 +47,9 @@ def print_midnighters(midnighters_data):
 
 
 if __name__ == '__main__':
-    url = 'http://devman.org/api/challenges/solution_attempts/?page='
-    loaded_first_page = get_json(url+'1')
+    payload = {'page': [1, ]}
+    url = 'http://devman.org/api/challenges/solution_attempts/'
+    loaded_first_page = get_json(url, payload)
     n_pages = loaded_first_page['number_of_pages']
     loaded_attempts = load_attempts(n_pages, url)
     midnighters_data = get_midnighters(loaded_attempts)
