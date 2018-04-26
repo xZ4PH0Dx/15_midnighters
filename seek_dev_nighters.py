@@ -3,19 +3,20 @@ import pytz
 from datetime import datetime
 
 
-def get_attempt_data(url, payload):
+def get_attempt_data(url, payload={}):
     return requests.get(url, params=payload).json()
 
 
-def get_status_code(url, payload):
-    return requests.get(url, params=payload).status_code
+def get_npages(url):
+    return requests.get(url).json()['number_of_pages']
 
 
 def load_attempts(url):
     payload = {'page': 1}
-    status_code = get_status_code(url, payload)
-    while status_code == 200:
+    n_pages = get_npages(url)
+    while payload['page'] <= n_pages:
         data_on_page = get_attempt_data(url, payload)
+        print(payload)
         for record in data_on_page['records']:
             yield {
                 'username': record['username'],
@@ -23,7 +24,6 @@ def load_attempts(url):
                 'timezone': record['timezone'],
                 }
         payload['page'] += 1
-        status_code = get_status_code(url, payload)
 
 
 def get_attempt_hour(time_zone, timestamp):
