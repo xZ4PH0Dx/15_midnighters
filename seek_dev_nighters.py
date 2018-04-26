@@ -3,33 +3,41 @@ import pytz
 from datetime import datetime
 
 
-def get_json(url, payload):
+def get_attempt_data(url, payload):
     return requests.get(url, params=payload).json()
 
 
-def load_attempts(n_pages, url):
-    for page in range(1, n_pages+1):
-        payload = {'page': page}
-        data_on_page = get_json(url, payload)
+def get_status_code(url, payload):
+    return requests.get(url, params=payload).status_code
+
+
+def load_attempts(url):
+    payload = {'page': 1}
+    status_code = get_status_code(url, payload)
+    while status_code == 200:
+        data_on_page = get_attempt_data(url, payload)
         for record in data_on_page['records']:
             yield {
                 'username': record['username'],
                 'timestamp': record['timestamp'],
                 'timezone': record['timezone'],
                 }
+        payload['page'] += 1
+        status_code = get_status_code(url, payload)
 
 
-def get_hour(time_zone, timestamp):
+def get_attempt_hour(time_zone, timestamp):
     local_tz = pytz.timezone(time_zone)
     date_time = datetime.fromtimestamp(timestamp, local_tz)
     return date_time.hour
 
 
 def get_midnighters(loaded_attempts):
-    midnight_hours = (0, 1, 2,)
+    start_hour = 0
+    end_hour = 6
     for attempt in loaded_attempts:
-        hour = get_hour(attempt['timezone'], attempt['timestamp'])
-        if hour in midnight_hours:
+        hour = get_attempt_hour(attempt['timezone'], attempt['timestamp'])
+        if start_hour <= hour <= end_hour:
             yield attempt
 
 
@@ -47,11 +55,8 @@ def print_midnighters(midnighters_data):
 
 
 if __name__ == '__main__':
-    payload = {'page': [1, ]}
     url = 'http://devman.org/api/challenges/solution_attempts/'
-    loaded_first_page = get_json(url, payload)
-    n_pages = loaded_first_page['number_of_pages']
-    loaded_attempts = load_attempts(n_pages, url)
+    loaded_attempts = load_attempts(url)
     midnighters_data = get_midnighters(loaded_attempts)
     unique_midnighters = get_uniq_midnighters(midnighters_data)
     print_midnighters(unique_midnighters)
