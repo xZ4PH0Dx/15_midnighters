@@ -3,7 +3,7 @@ import pytz
 from datetime import datetime
 
 
-def get_attempt_data(url, payload={}):
+def get_attempt_data(url, payload=()):
     return requests.get(url, params=payload).json()
 
 
@@ -16,7 +16,6 @@ def load_attempts(url):
     n_pages = get_npages(url)
     while payload['page'] <= n_pages:
         data_on_page = get_attempt_data(url, payload)
-        print(payload)
         for record in data_on_page['records']:
             yield {
                 'username': record['username'],
