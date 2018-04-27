@@ -7,22 +7,23 @@ def get_attempt_data(url, payload=()):
     return requests.get(url, params=payload).json()
 
 
-def get_npages(url):
-    return requests.get(url).json()['number_of_pages']
-
-
 def load_attempts(url):
     payload = {'page': 1}
-    n_pages = get_npages(url)
-    while payload['page'] <= n_pages:
-        data_on_page = get_attempt_data(url, payload)
-        for record in data_on_page['records']:
-            yield {
-                'username': record['username'],
-                'timestamp': record['timestamp'],
-                'timezone': record['timezone'],
-                }
-        payload['page'] += 1
+    page_data = get_attempt_data(url, payload)
+    n_pages = page_data['number_of_pages']
+    while True:
+        if payload['page'] <= n_pages:
+            page_data = get_attempt_data(url, payload)
+            n_pages = page_data['number_of_pages']
+            for record in page_data['records']:
+                yield {
+                    'username': record['username'],
+                    'timestamp': record['timestamp'],
+                    'timezone': record['timezone'],
+                    }
+            payload['page'] += 1
+        else:
+            break
 
 
 def get_attempt_hour(time_zone, timestamp):
