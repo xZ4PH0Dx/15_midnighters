@@ -9,9 +9,7 @@ def get_attempt_data(url, payload=()):
 
 def load_attempts(url):
     payload = {'page': 1}
-    page_data = get_attempt_data(url, payload)
-    n_pages = page_data['number_of_pages']
-    while payload['page'] <= n_pages:
+    while True:
         page_data = get_attempt_data(url, payload)
         n_pages = page_data['number_of_pages']
         for record in page_data['records']:
@@ -21,6 +19,8 @@ def load_attempts(url):
                 'timezone': record['timezone'],
                 }
         payload['page'] += 1
+        if payload['page'] > n_pages:
+            break
 
 
 def get_attempt_hour(time_zone, timestamp):
