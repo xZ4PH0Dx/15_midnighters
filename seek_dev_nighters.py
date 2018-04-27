@@ -11,19 +11,16 @@ def load_attempts(url):
     payload = {'page': 1}
     page_data = get_attempt_data(url, payload)
     n_pages = page_data['number_of_pages']
-    while True:
-        if payload['page'] <= n_pages:
-            page_data = get_attempt_data(url, payload)
-            n_pages = page_data['number_of_pages']
-            for record in page_data['records']:
-                yield {
-                    'username': record['username'],
-                    'timestamp': record['timestamp'],
-                    'timezone': record['timezone'],
-                    }
-            payload['page'] += 1
-        else:
-            break
+    while payload['page'] <= n_pages:
+        page_data = get_attempt_data(url, payload)
+        n_pages = page_data['number_of_pages']
+        for record in page_data['records']:
+            yield {
+                'username': record['username'],
+                'timestamp': record['timestamp'],
+                'timezone': record['timezone'],
+                }
+        payload['page'] += 1
 
 
 def get_attempt_hour(time_zone, timestamp):
